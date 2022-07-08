@@ -1,17 +1,18 @@
 import argparse
 import requests
 import json
+import os
 
 from datetime import datetime
 
 
 def get_request(lat=55, lon=73.35, dt=0):
-    API_KEY = "75eeb07becc2582211e46c48eaf660e4"
+    weather_API_KEY = os.getenv("weather_api_key", default="75eeb07becc2582211e46c48eaf660e4")
     units = 'metric'
-    url = f'http://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={API_KEY}&units={units}'
+    url = f'http://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={weather_API_KEY}&units={units}'
     response = requests.get(url)
     if not response.status_code == 200:
-        raise Exception('HTTP response status code is not 200')
+        raise Exception(f'HTTP response status code is not 200 \n {response.text}')
     weather = json.loads(response.text)
     return weather
 
@@ -48,9 +49,16 @@ def parse_request(json_string, units='metric') -> str:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'date',
+        '--date', required=False,
         type=lambda s: datetime.strptime(s, '%Y-%m-%d %H:%M:%S'))
-    date_time = datetime(2022, 7, 8, 20, 20, 0)  # time in local timezone
+
+    arg_date = parser.parse_args().date
+
+    if arg_date is None:
+        date_time = datetime(2022, 7, 8, 20, 20, 0)  # time in local timezone
+    else:
+        date_time = arg_date
+
     latitude = 55
     longitude = 73.35
     timestamp = int(date_time.timestamp())
