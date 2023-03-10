@@ -6,10 +6,10 @@ import os
 from datetime import datetime
 
 
-def get_request(lat=55, lon=73.35, dt=0):
-    weather_API_KEY = os.getenv("weather_api_key", default="75eeb07becc2582211e46c48eaf660e4")
+def get_request(lat=54.991375, lon=73.371529, dt=0):
+    weather_api_key = os.getenv("weather_api_key", default="75eeb07becc2582211e46c48eaf660e4")
     units = 'metric'
-    url = f'http://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={weather_API_KEY}&units={units}'
+    url = f'http://api.openweathermap.org/data/2.5/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={weather_api_key}&units={units}'
     response = requests.get(url)
     if not response.status_code == 200:
         raise Exception(f'HTTP response status code is not 200 \n {response.text}')
@@ -52,18 +52,25 @@ if __name__ == '__main__':
         '--date', required=False,
         type=lambda s: datetime.strptime(s, '%Y-%m-%d %H:%M:%S'))
 
+    parser.add_argument(
+        '--lat', required=False,
+        type=float
+    )
+
+    parser.add_argument(
+        '--lon', required=False,
+        type=float
+    )
+
     arg_date = parser.parse_args().date
 
-    if arg_date is None:
-        date_time = datetime(2022, 7, 8, 20, 20, 0)  # time in local timezone
-    else:
-        date_time = arg_date
+    date_time = datetime(2022, 7, 8, 20, 20, 0) if arg_date is None else arg_date  # time in local timezone
+    latitude = 55 if parser.parse_args().lat is None else parser.parse_args().lat
+    longitude = 73.35 if parser.parse_args().lon is None else parser.parse_args().lon
 
-    latitude = 55
-    longitude = 73.35
     timestamp = int(date_time.timestamp())
 
-    json_str = get_request(dt=timestamp)
+    json_str = get_request(dt=timestamp, lat=latitude, lon=longitude)
     weather_text = parse_request(json_str)
     print(weather_text)
 
